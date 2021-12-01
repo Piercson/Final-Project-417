@@ -105,6 +105,5 @@ class Astar(object):
                 else:
                     closed_list[(child['loc'],matrix_to_int(child['state']))] = child
                     self.push_node(child)
-        print('END',len(self.open_list))
         return None
         
