@@ -4,7 +4,8 @@ import copy
 def move(loc, dir):
     directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
     return loc[0] + directions[dir][0], loc[1] + directions[dir][1]
-
+# swaps postions o_loc and n_loc in og_state
+# Return a new state of the swapped positions
 def get_new_state(o_loc, n_loc, og_state):
     new_state = copy.deepcopy(og_state)
     temp = new_state[o_loc[0]][o_loc[1]]
@@ -29,7 +30,7 @@ def compute_heuristic_matt(state,goal_state):
             goal[goal_state[i][j]] = (i,j)
             curr[state[i][j]] = (i,j)
     sum_arr = []
-    for i in range(0,width**2):
+    for i in range(1,width**2):
         g = goal[i]
         s = curr[i]
         sum_arr.append(abs(g[0]-s[0]) + abs(g[1]-s[1]))
@@ -76,6 +77,7 @@ class Astar(object):
     def find_solution(self, state, start_loc):
         
         #self.start_time = timer.time()
+        size = len(state)
         closed_list = dict()
         root = {'loc': start_loc,'parent': None,'state': state,'g_val': compute_heuristic_matt(state,self.goal),'cost': 0}
         self.push_node(root)
@@ -87,9 +89,7 @@ class Astar(object):
                 return get_path(curr)
             for dir in range(4):
                 child_loc = move(curr['loc'], dir)
-                try:
-                    curr['state'][child_loc[0]][child_loc[1]]
-                except IndexError:
+                if child_loc[0] < 0 or child_loc[1] < 0 or child_loc[0] >= size or child_loc[1] >= size:
                     continue
                 new_state = get_new_state(curr['loc'], child_loc, curr['state'])
                 child = {'loc': child_loc,
