@@ -1,0 +1,5 @@
+pip install timer
+pip install copy
+pip install heapq
+pip install numpy
+pip install random
