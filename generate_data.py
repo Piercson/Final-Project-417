@@ -29,6 +29,7 @@ def get_data(solvers,num_states,num_shuffles,goal_state):
         state = get_random_state(goal,num_shuffles)
         int_state = matrix_to_int(state)
         if int_state in lst_states:
+            i += 1
             continue
         lst_states.append(int_state)
         for solver_type in solvers:
@@ -40,12 +41,12 @@ def get_data(solvers,num_states,num_shuffles,goal_state):
             time = solver.CPU_time
             row = pd.DataFrame([[
                 solver.name,
-                expanded,
-                generated,
-                length,
+                int(expanded),
+                int(generated),
+                int(length - 1),
                 time,
                 int_state]],
                 columns=['name','expanded','generated','sol_length','time','state'])
             data = pd.concat([data,row])
         i+=1
-    return data
+    return data.reset_index()

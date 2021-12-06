@@ -109,117 +109,118 @@ class Astar(object):
                     self.push_node(child)
         return None
 
-# class idastar(object):
-#     """The high-level search of CBS."""
+class idastar(object):
+    """The high-level search of CBS."""
 
-#     def __init__(self, goal):
-#         self.goal = goal
-#         self.name = "IDAStar"
-#         self.num_of_generated = 0
-#         self.num_of_expanded = 0
-#         self.CPU_time = 0
+    def __init__(self, goal):
+        self.goal = goal
+        self.name = "IDAStar"
+        self.num_of_generated = 0
+        self.num_of_expanded = 0
+        self.CPU_time = 0
+        self.thresholds = dict()
 
-#         # compute heuristics for the low-level search
+        # compute heuristics for the low-level search
 
-#     def push_node(self, lst, node):
-#         heapq.heappush(lst, (node['h_val'], self.num_of_generated, node))
-#         # print("Generate node {}".format(self.num_of_generated))
-#         self.num_of_generated += 1
+    def push_node(self, lst, node):
+        heapq.heappush(lst, (node['h_val'], self.num_of_generated, node))
+        # print("Generate node {}".format(self.num_of_generated))
+        self.num_of_generated += 1
 
-#     def pop_node(self, lst):
-#         _, id, node = heapq.heappop(lst)
-#         # print("Expand node {}".format(id))
-#         self.num_of_expanded += 1
-#         return node
-#     def find_solution(self, state, start_loc):
-#         self.start_time = timer.time()
-#         threshold = compute_heuristic_matt(state,self.goal)
-#         root = {'loc': start_loc,'parent': None,'state': state,'h_val': compute_heuristic_matt(state,self.goal),'cost': 0}
-#         f_values = [threshold]
-#         while threshold <= 100:
-#             stack = []
-#             closed_list = dict()
-#             self.push_node(stack,root)
-#             closed_list[matrix_to_int(root['state'])] = root
-#             threshold = min(f_values)
-#             f_values = []
-#             while len(stack) > 0:
-#                 _, _, node = stack.pop()
-#                 self.num_of_expanded += 1
-#                 f = node['cost'] + node['h_val']
-#                 # check if f is larger than threshold, dont explore if greater than
-#                 if f > threshold:
-#                     continue
-#                 # check if state is goal state
-#                 if node['state'] == self.goal:
-#                     self.CPU_time = timer.time() - self.start_time
-#                     return get_path(node)
-#                 child_nodes = self.nextnodes(node)
-#                 for child in child_nodes[::-1]:
-#                     child_n = child[2]
-#                     f_val = child_n['cost'] + child_n['h_val']
-#                     if f_val > threshold:
-#                         f_values.append(f_val)
-#                         self.num_of_generated -= 1
-#                         continue
-#                     if matrix_to_int(child_n['state']) in closed_list:
-#                         continue
-#                     closed_list[matrix_to_int(child_n['state'])] = child_n
-#                     stack.append(child)
-
-                
+    def pop_node(self, lst):
+        _, id, node = heapq.heappop(lst)
+        # print("Expand node {}".format(id))
+        self.num_of_expanded += 1
+        return node
+    def find_solution(self, state, start_loc):
+        self.start_time = timer.time()
+        threshold = compute_heuristic_matt(state,self.goal)
+        root = {'loc': start_loc,'parent': None,'state': state,'h_val': compute_heuristic_matt(state,self.goal),'cost': 0}
+        f_values = [threshold]
+        while threshold <= 100:
+            stack = []
+            closed_list = dict()
+            self.push_node(stack,root)
+            closed_list[matrix_to_int(root['state'])] = root
+            threshold = min(f_values)
+            f_values = []
+            while len(stack) > 0:
+                _, _, node = stack.pop()
+                self.num_of_expanded += 1
+                f = node['cost'] + node['h_val']
+                # check if f is larger than threshold, dont explore if greater than
+                if f > threshold:
+                    continue
+                # check if state is goal state
+                if node['state'] == self.goal:
+                    self.CPU_time = timer.time() - self.start_time
+                    self.thresholds[threshold] = [self.num_of_generated,self.num_of_expanded]
+                    return get_path(node)
+                child_nodes = self.nextnodes(node)
+                for child in child_nodes[::-1]:
+                    child_n = child[2]
+                    f_val = child_n['cost'] + child_n['h_val']
+                    if f_val > threshold:
+                        f_values.append(f_val)
+                        self.num_of_generated -= 1
+                        continue
+                    if matrix_to_int(child_n['state']) in closed_list:
+                        continue
+                    closed_list[matrix_to_int(child_n['state'])] = child_n
+                    stack.append(child)
+            self.thresholds[threshold] = [self.num_of_generated,self.num_of_expanded]
             
-#     def find_solution1(self, state, start_loc):
-#         threshold = compute_heuristic_matt(state,self.goal)
-#         root = {'loc': start_loc,'parent': None,'state': state,'h_val': compute_heuristic_matt(state,self.goal),'cost': 0}
-#         self.num_of_generated += 1
-#         print('Threshhold',threshold)
-#         while(1):
-#             node, f = self.search(root,0,threshold)
-#             print("New Bound", f)
-#             # check if found
-#             if node != None:
-#                 return node
-#             # if f is infinity, then no solution
-#             if f == float('inf'):
-#                 return None
-#             # adjust threshold
-#             threshold = f
-#     def search(self,node, g, threshold):
-#         f = g + node['h_val']
-#         if f > threshold:
-#             return None, f
-#         # Check if goal state
-#         if node['state'] == self.goal:
-#             return node, -1
-#         minimun = float('inf')
-#         list_nodes = self.nextnodes(node)
-#         for tempnode in list_nodes:
-#             # Get node from the list of nodes (sorted by h_val)
-#             tempnode = self.pop_node(list_nodes)
-#             # Do recurse on tempnode
-#             newNode, val = self.search(tempnode, tempnode['cost'],threshold)
-#             # Check if the goal state was found
-#             if newNode != None:
-#                 return newNode, -1
-#             # otherwise set new bound
-#             if val < minimun:
-#                 minimun = val
-#         return None, minimun
-#     def nextnodes(self,node):
-#         nodes = []
-#         size = len(node['state'])
-#         # try 4 possible swaps
-#         for dir in range(4):
-#             child_loc = move(node['loc'], dir)
-#             # make sure child_loc is a valid location
-#             if child_loc[0] < 0 or child_loc[1] < 0 or child_loc[0] >= size or child_loc[1] >= size:
-#                     continue
-#             new_state = get_new_state(node['loc'], child_loc, node['state'])
-#             child = {'loc': child_loc,
-#                      'parent': node,
-#                      'state': new_state,
-#                      'h_val': compute_heuristic_matt(new_state,self.goal),
-#                      'cost': node['cost'] + 1}
-#             self.push_node(nodes,child)
-#         return nodes
+    def find_solution1(self, state, start_loc):
+        threshold = compute_heuristic_matt(state,self.goal)
+        root = {'loc': start_loc,'parent': None,'state': state,'h_val': compute_heuristic_matt(state,self.goal),'cost': 0}
+        self.num_of_generated += 1
+        print('Threshhold',threshold)
+        while(1):
+            node, f = self.search(root,0,threshold)
+            print("New Bound", f)
+            # check if found
+            if node != None:
+                return node
+            # if f is infinity, then no solution
+            if f == float('inf'):
+                return None
+            # adjust threshold
+            threshold = f
+    def search(self,node, g, threshold):
+        f = g + node['h_val']
+        if f > threshold:
+            return None, f
+        # Check if goal state
+        if node['state'] == self.goal:
+            return node, -1
+        minimun = float('inf')
+        list_nodes = self.nextnodes(node)
+        for tempnode in list_nodes:
+            # Get node from the list of nodes (sorted by h_val)
+            tempnode = self.pop_node(list_nodes)
+            # Do recurse on tempnode
+            newNode, val = self.search(tempnode, tempnode['cost'],threshold)
+            # Check if the goal state was found
+            if newNode != None:
+                return newNode, -1
+            # otherwise set new bound
+            if val < minimun:
+                minimun = val
+        return None, minimun
+    def nextnodes(self,node):
+        nodes = []
+        size = len(node['state'])
+        # try 4 possible swaps
+        for dir in range(4):
+            child_loc = move(node['loc'], dir)
+            # make sure child_loc is a valid location
+            if child_loc[0] < 0 or child_loc[1] < 0 or child_loc[0] >= size or child_loc[1] >= size:
+                    continue
+            new_state = get_new_state(node['loc'], child_loc, node['state'])
+            child = {'loc': child_loc,
+                     'parent': node,
+                     'state': new_state,
+                     'h_val': compute_heuristic_matt(new_state,self.goal),
+                     'cost': node['cost'] + 1}
+            self.push_node(nodes,child)
+        return nodes
